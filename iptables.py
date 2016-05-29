@@ -66,12 +66,11 @@ class Traffice(object):
             port_traffic_value += k_traffic
             self.port_traffic_dict[k] = port_traffic_value  # 添加到字典里面
 
-
     def dump_dict(self):
         """端口流量写入到文件"""
         dict_dump_file_list = []
         for k in self.port_traffic_dict:
-            value = "%s %s\n" %(k, self.port_traffic_dict[k])
+            value = "%s %s\n" % (k, self.port_traffic_dict[k])
             dict_dump_file_list.append(value)
         with open(self.dict_dump_file_name, 'w') as f:
             for i in dict_dump_file_list:
@@ -84,7 +83,7 @@ class Traffice(object):
         else:
             a = ''
         # 获取当前日期
-        log_time = '%s%s\n' %(a, time.strftime('%Y-%m-%d %H:%M:%S'),)
+        log_time = '%s%s\n' % (a, time.strftime('%Y-%m-%d %H:%M:%S'),)
         # 写入文件
         with open('traffic.log', 'a') as f:
             f.write(log_time)
@@ -97,7 +96,7 @@ class Traffice(object):
         # 读取配置或临时文件 获取端口 流量字典
         self.port_traffic()
         while True:
-            for i in list(range(48)):
+            for _ in list(range(48)):
                 # 清空规则并添加规则
                 self.iptables_rules()
                 # 睡眠等结果
