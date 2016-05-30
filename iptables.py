@@ -8,14 +8,22 @@ import time
 
 class Traffice(object):
     def __init__(self):
-        # 端口流量字典
+        # 端口总流量字典
         self.port_traffic_dict = {}
+        # 端口间隔流量字典
+        self.port_traffic_day_dict = {}
         # 配置文件名
         self.conf_file_name = 'conf'
         # 临时文件名
         self.dict_dump_file_name = 'dict.dump'
+        # 总量log文件名
+        self.traffic_all_log = 'traffic.log'
+        # 间隔量log文件名
+        self.traffic_day_log = 'traffic_day.log'
         # 取值间隔
         self.sleep_time = 1800
+        # 取值次数写入log
+        self.cycles = 48
         # 主机ip
         self.host_ip = '192.168.1.1'
 
@@ -52,11 +60,16 @@ class Traffice(object):
             add_rules = 'iptables -A OUTPUT -s %s/32 -p tcp -m tcp --sport %s' % (self.host_ip, k)
             self.shell_command(add_rules)
 
+    def traffic_day(self):
+        for k in self.port_traffic_dict:
+            self.port_traffic_day_dict[k] = 0
+
     def traffic_sum(self):
         """获取流量值并相加放入字典"""
         for k in self.port_traffic_dict:
             # 流量
             port_traffic_value = int(self.port_traffic_dict[k])
+            port_traffic_day_value = int(self.port_traffic_day_dict[k])
             # 获取流量shell语句
             o = "iptables -nvxL -t filter |grep -i 'spt:%s' |awk -F' ' '{print $2}'" % k
             # 获取流量值
@@ -64,7 +77,10 @@ class Traffice(object):
             k_traffic = int(result.read())
             # 加上流量值
             port_traffic_value += k_traffic
-            self.port_traffic_dict[k] = port_traffic_value  # 添加到字典里面
+            port_traffic_day_value += k_traffic
+            # 添加到字典
+            self.port_traffic_dict[k] = port_traffic_value
+            self.port_traffic_day_dict[k] = port_traffic_day_value
 
     def dump_dict(self):
         """端口流量写入到文件"""
@@ -76,27 +92,39 @@ class Traffice(object):
             for i in dict_dump_file_list:
                 f.write(i)
 
-    def write_log(self):
+    def write_list(self):
+        """要写入日志的列表"""
+        traffic_all_log_list = [self.traffic_all_log, self.port_traffic_dict]
+        traffic_day_log_list = [self.traffic_day_log, self.port_traffic_day_dict]
+        return traffic_all_log_list, traffic_day_log_list
+
+    def write_log(self, args):
         """写入日志"""
-        if os.path.exists('traffic.log'):
-            a = '\n'
-        else:
-            a = ''
-        # 获取当前日期
-        log_time = '%s%s\n' % (a, time.strftime('%Y-%m-%d %H:%M:%S'),)
-        # 写入文件
-        with open('traffic.log', 'a') as f:
-            f.write(log_time)
-            for k in self.port_traffic_dict:
-                # 转换成MB,并保留小数两位
-                value_ai = round((self.port_traffic_dict[k] / 1024 / 1024), 2)
-                f.write("%s:%sMB; " % (k, value_ai))
+        for i in range(len(args)):
+            write_list = args[i]
+            file_name = write_list[0]
+            file_dict = write_list[1]
+            if os.path.exists(file_name):
+                a = '\n'
+            else:
+                a = ''
+            # 获取当前日期
+            log_time = '%s%s\n' % (a, time.strftime('%Y-%m-%d %H:%M:%S'))
+            # 写入文件
+            with open(file_name, 'a') as f:
+                f.write(log_time)
+                for k in file_dict:
+                    # 转换成MB,并保留小数两位
+                    value_ai = round((file_dict[k] / 1024 / 1024), 2)
+                    f.write("%s:%sMB; " % (k, value_ai))
     
     def run(self):
         # 读取配置或临时文件 获取端口 流量字典
         self.port_traffic()
         while True:
-            for _ in list(range(48)):
+            # 间隔流量字典置空添加
+            self.traffic_day()
+            for _ in range(self.cycles):
                 # 清空规则并添加规则
                 self.iptables_rules()
                 # 睡眠等结果
@@ -105,8 +133,10 @@ class Traffice(object):
                 self.traffic_sum()
                 # 端口流量写入到临时文件
                 self.dump_dict()
+            # 获取写入日志的列表
+            a = self.write_list()
             # 写入日志
-            self.write_log()
+            self.write_log(a)
 
 if __name__ == '__main__':
     traffic = Traffice()
