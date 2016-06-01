@@ -98,10 +98,11 @@ class Traffice(object):
         traffic_day_log_list = [self.traffic_day_log, self.port_traffic_day_dict]
         return traffic_all_log_list, traffic_day_log_list
 
-    def write_log(self, args):
+    def write_log(self):
         """写入日志"""
-        for i in range(len(args)):
-            write_list = args[i]
+        write_list_return = self.write_list()
+        for i in range(len(write_list_return)):
+            write_list = write_list_return[i]
             file_name = write_list[0]
             file_dict = write_list[1]
             if os.path.exists(file_name):
@@ -133,10 +134,8 @@ class Traffice(object):
                 self.traffic_sum()
                 # 端口流量写入到临时文件
                 self.dump_dict()
-            # 获取写入日志的列表
-            a = self.write_list()
             # 写入日志
-            self.write_log(a)
+            self.write_log()
 
 if __name__ == '__main__':
     traffic = Traffice()
