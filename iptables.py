@@ -74,7 +74,10 @@ class Traffice(object):
             o = "iptables -nvxL -t filter |grep -i 'spt:%s' |awk -F' ' '{print $2}'" % k
             # 获取流量值
             result = self.shell_command(o)
-            k_traffic = int(result.read())
+            if result.read():
+                k_traffic = int(result.read())
+            else:
+                k_traffic = 0
             # 加上流量值
             port_traffic_value += k_traffic
             port_traffic_day_value += k_traffic
