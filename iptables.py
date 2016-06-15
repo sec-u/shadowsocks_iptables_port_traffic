@@ -117,12 +117,12 @@ class Traffice(object):
             # 写入文件
             with open(file_name, 'a') as f:
                 f.write(log_time)
-                file_dict = sorted(file_dict.items(), key=lambda x:x[0])
+                file_dict = sorted(file_dict.items(), key=lambda x: x[0])
                 for k in file_dict:
                     # 转换成MB,并保留小数两位
                     value_ai = round((k[1] / 1024 / 1024), 2)
                     f.write("%s:%sMB; " % (k[0], value_ai))
-    
+
     def run(self):
         # 读取配置或临时文件 获取端口 流量字典
         self.port_traffic()
