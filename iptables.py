@@ -34,13 +34,13 @@ class Traffice(object):
             with open(self.dict_dump_file_name, 'r') as f:
                 for i in f.readlines():
                     i = i.split(' ')
-                    self.port_traffic_dict[i[0]] = i[1].strip('\n')
+                    self.port_traffic_dict[int(i[0])] = int(i[1].strip('\n'))
         elif os.path.exists(self.conf_file_name):
             # 读取配置文件
             with open(self.conf_file_name, 'r') as f:
                 for i in f.readlines():
                     i = i.strip()
-                    self.port_traffic_dict[i] = 0
+                    self.port_traffic_dict[int(i)] = 0
         else:
             # 程序异常退出
             print('找不到配置文件！')
@@ -57,7 +57,7 @@ class Traffice(object):
         self.shell_command(traffic_f)
         # 添加规则
         for k in self.port_traffic_dict:
-            add_rules = 'iptables -A OUTPUT -s %s/32 -p tcp -m tcp --sport %s' % (self.host_ip, k)
+            add_rules = 'iptables -A OUTPUT -s %s/32 -p tcp -m tcp --sport %d' % (self.host_ip, k)
             self.shell_command(add_rules)
 
     def traffic_day(self):
@@ -71,11 +71,12 @@ class Traffice(object):
             port_traffic_value = int(self.port_traffic_dict[k])
             port_traffic_day_value = int(self.port_traffic_day_dict[k])
             # 获取流量shell语句
-            o = "iptables -nvxL -t filter |grep -i 'spt:%s' |awk -F' ' '{print $2}'" % k
+            o = "iptables -nvxL -t filter |grep -w 'spt:%d' |awk -F' ' '{print $2}'" % k
             # 获取流量值
             result = self.shell_command(o)
-            if result.read():
-                k_traffic = int(result.read())
+            result_str = result.read()
+            if result_str:
+                k_traffic = int(result_str)
             else:
                 k_traffic = 0
             # 加上流量值
