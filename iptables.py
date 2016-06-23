@@ -21,9 +21,9 @@ class Traffice(object):
         # 间隔量log文件名
         self.traffic_day_log = 'traffic_day.log'
         # 取值间隔
-        self.sleep_time = 1800
+        self.sleep_time = 900
         # 取值次数写入log
-        self.cycles = 48
+        self.cycles = 96
         # 主机ip
         self.host_ip = '192.168.1.1'
 
@@ -109,12 +109,8 @@ class Traffice(object):
             write_list = write_list_return[i]
             file_name = write_list[0]
             file_dict = write_list[1]
-            if os.path.exists(file_name):
-                a = '\n'
-            else:
-                a = ''
             # 获取当前日期
-            log_time = '%s%s\n' % (a, time.strftime('%Y-%m-%d %H:%M:%S'))
+            log_time = time.strftime('%Y-%m-%d %H:%M:%S') + '\n'
             # 写入文件
             with open(file_name, 'a') as f:
                 f.write(log_time)
@@ -123,6 +119,7 @@ class Traffice(object):
                     # 转换成MB,并保留小数两位
                     value_ai = round((k[1] / 1024 / 1024), 2)
                     f.write("%s:%sMB; " % (k[0], value_ai))
+                f.write('\n')
 
     def run(self):
         # 读取配置或临时文件 获取端口 流量字典
