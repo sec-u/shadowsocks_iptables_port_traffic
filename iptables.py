@@ -76,7 +76,10 @@ class Traffice(object):
             result = self.shell_command(o)
             result_str = result.read()
             if result_str:
-                k_traffic = int(result_str)
+                try:
+                    k_traffic = int(result_str)
+                except ValueError:
+                    k_traffic = 0
             else:
                 k_traffic = 0
             # 加上流量值
